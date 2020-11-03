@@ -511,6 +511,28 @@ class AddressBook extends Contact {
         return false;
     }
 
+    public int findDoj(String start,String end)
+    {
+        int count=0;
+        String sql="select * from address where DOJ between ? and ?;";
+        try
+        {
+            ConnectionCreate c = new ConnectionCreate();
+            Connection con = c.makeConnection();
+            PreparedStatement statement=con.prepareStatement(sql);;
+            statement.setString(1,start);
+            statement.setString(2,end);
+            ResultSet r=statement.executeQuery();
+            while(r.next())
+            {
+                count++;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return count;
+    }
+
 
 
 }
