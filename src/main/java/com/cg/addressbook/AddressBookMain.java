@@ -181,6 +181,18 @@ public class AddressBookMain {
                                 case 16:
                                     book.checkSync(sc.nextLine());
                                     break;
+                                case 17:
+                                    book.findDoj(sc.nextLine(),sc.nextLine());
+                                    break;
+                                case 18:
+                                    System.out.println(book.retrieveByCity(sc.nextLine()));
+                                    break;
+                                case 19:
+                                    System.out.println(book.retrieveByState(sc.nextLine()));
+                                    break;
+                                case 20:
+                                    book.insert(getContact(sc.nextLine(),sc.nextLine()));
+                                    break;
 
                                 default:
                                     loop2=false;
@@ -519,7 +531,7 @@ class AddressBook extends Contact {
         {
             ConnectionCreate c = new ConnectionCreate();
             Connection con = c.makeConnection();
-            PreparedStatement statement=con.prepareStatement(sql);;
+            PreparedStatement statement=con.prepareStatement(sql);
             statement.setString(1,start);
             statement.setString(2,end);
             ResultSet r=statement.executeQuery();
@@ -531,6 +543,65 @@ class AddressBook extends Contact {
             throwables.printStackTrace();
         }
         return count;
+    }
+
+    public int retrieveByState(String state)
+    {
+        int count = 0;
+        String sql = "select * from address where state=?";
+        try {
+            ConnectionCreate c = new ConnectionCreate();
+            Connection con = c.makeConnection();
+            PreparedStatement statement=con.prepareStatement(sql);
+            statement.setString(1, state);
+            ResultSet r = statement.executeQuery();
+            while (r.next()) {
+                count++;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return count;
+    }
+
+    public int retrieveByCity(String city)
+    {
+        int count = 0;
+        String sql = "select * from address where vity=?";
+        try {
+            ConnectionCreate c = new ConnectionCreate();
+            Connection con = c.makeConnection();
+            PreparedStatement statement=con.prepareStatement(sql);
+            statement.setString(1, city);
+            ResultSet r = statement.executeQuery();
+            while (r.next()) {
+                count++;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return count;
+    }
+
+    public void insert(Contact c)
+    {
+        String sql="insert into contact (first_name,last_name,address,city,state,zip,phone,email) values (?,?,?,?,?,?,?,?);";
+        try {
+            ConnectionCreate conc = new ConnectionCreate();
+            Connection con = conc.makeConnection();
+            PreparedStatement statement=con.prepareStatement(sql);
+            statement.setString(1, c.getFirst());
+            statement.setString(2,c.getLast());
+            statement.setString(3,c.getAddress());
+            statement.setString(4,c.getCity());
+            statement.setString(5,c.getState());
+            statement.setString(6,c.getZip());
+            statement.setString(7,c.getPhone());
+            statement.setString(8,c.getEmail());
+            statement.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
 
