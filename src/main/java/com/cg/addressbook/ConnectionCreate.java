@@ -5,13 +5,13 @@ import java.util.Enumeration;
 
 public class ConnectionCreate {
     public Connection makeConnection() {
-        String jdbcURL = "jdbc:mysql://localhost/testdb?useSSL=false";
+        String jdbcURL = "jdbc:mysql://localhost:3306/address_book_service";
         String userName = "root";
         String password = "aditya@123";
         Connection con;
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            System.out.println("Driver loaded!");
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            //System.out.println("Driver loaded!");
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Cannot find the driver in the classpath!", e);
         }
@@ -20,7 +20,7 @@ public class ConnectionCreate {
         System.out.println("Connecting to database:" + jdbcURL);
         try {
             con = DriverManager.getConnection(jdbcURL, userName, password);
-            System.out.println("Connection is successful!!!!" + con);
+            //System.out.println("Connection is successful!!!!" + con);
             return con;
         } catch (SQLException throwables) {
             throwables.printStackTrace();

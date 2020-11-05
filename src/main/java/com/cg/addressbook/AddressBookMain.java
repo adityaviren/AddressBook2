@@ -50,7 +50,7 @@ public class AddressBookMain {
         return ab;
     }
 
-    public static void main(String[] args) throws IOException, SQLException {
+    public static void main(String[] args) throws IOException, SQLException, CsvValidationException {
         AddressBookDictionary abd = new AddressBookDictionary();
         Scanner sc = new Scanner(System.in);
         System.out.println("Welcome to Address Book System");
@@ -102,6 +102,13 @@ public class AddressBookMain {
 								Enter 12 to read from a CSV file
 								Enter 13 to write in a JSON file
 								Enter 14 to read from JSON file
+								Enter 15 to read from DB
+								Enter 16 to check if program and DB are in sync
+								Enter 17 to return all people in the given dates
+								Enter 18 to return number of people in the city
+								Enter 19 to return number of people in the state
+								Enter 20 to insert into DB
+								Enter 21 to insert multiple in DB
 								Enter 0 to exit""");
                             choice2 = Integer.parseInt(sc.nextLine());
                             switch (choice2) {
@@ -193,6 +200,10 @@ public class AddressBookMain {
                                 case 20:
                                     book.insert(getContact(sc.nextLine(),sc.nextLine()));
                                     break;
+                                case 21:
+                                    book.readCSV();
+                                    book.insertMultiple(book.viewPersonByCity(sc.nextLine()));
+                                    break;
 
                                 default:
                                     loop2=false;
@@ -242,7 +253,7 @@ public class AddressBookMain {
     }
 }
 
-class AddressBook extends Contact {
+class AddressBook extends Contact{
     Map<String,ArrayList<Contact>> city_wise_map = new HashMap<>();
     Map<String,ArrayList<Contact>> state_wise_map = new HashMap<>();
     private ArrayList<Contact> address_book = new ArrayList<>();
@@ -433,6 +444,10 @@ class AddressBook extends Contact {
         }
     }
 
+    public int sizeOfAddressBook(){
+        return address_book.size();
+    }
+
 
     public void writeCSV() throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
         String CSV_write_file = "F:\\AddressBookCSVwrite.txt";
@@ -487,10 +502,10 @@ class AddressBook extends Contact {
         }
     }
 
-    public void readDB() throws SQLException {
+    public ArrayList<Contact> readDB() throws SQLException {
         ConnectionCreate c = new ConnectionCreate();
         Statement stmt = c.makeConnection().createStatement();
-        String sql = "select * from addressbook;";
+        String sql = "select * from address_book_table;";
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()){
             Contact contact = new Contact();
@@ -502,31 +517,40 @@ class AddressBook extends Contact {
             contact.setZip(rs.getString(6));
             contact.setPhone(rs.getString(7));
             contact.setEmail(rs.getString(8));
+            contact.setDate(rs.getDate(9));
             address_book.add(contact);
         }
+        return address_book;
     }
 
     public boolean checkSync(String name) throws SQLException {
-        ConnectionCreate c = new ConnectionCreate();
-        Connection con = c.makeConnection();
-        PreparedStatement prep = con.prepareStatement("select phone from addressbook where name = ?");
-        prep.setString(1,name);
-        ResultSet rs = prep.executeQuery();
-        String local_phone = rs.getString(1);
-        for(Contact contact : address_book){
-            if(contact.getFirst().equals(name)){
-                if(contact.getPhone().equals(local_phone)){
-                    return true;
+        String[] names = name.split(" ");
+        if(names.length==2) {
+            ConnectionCreate c = new ConnectionCreate();
+            Connection con = c.makeConnection();
+            PreparedStatement prep = con.prepareStatement("select phone from address_book_table where first_name = ? and last_name = ?");
+            prep.setString(1, names[0]);
+            prep.setString(2, names[1]);
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            String local_phone = rs.getString(1);
+            for (Contact contact : address_book) {
+                if (contact.getFirst().equals(names[0]) && contact.getLast().equals(names[1])) {
+                    if (contact.getPhone().equals(local_phone)) {
+                        return true;
+                    }
                 }
             }
+            return false;
         }
-        return false;
+        else
+            return false;
     }
 
     public int findDoj(String start,String end)
     {
         int count=0;
-        String sql="select * from address where DOJ between ? and ?;";
+        String sql="select * from address_book_table where DOJ between ? and ?;";
         try
         {
             ConnectionCreate c = new ConnectionCreate();
@@ -548,7 +572,7 @@ class AddressBook extends Contact {
     public int retrieveByState(String state)
     {
         int count = 0;
-        String sql = "select * from address where state=?";
+        String sql = "select * from address_book_table where state=?";
         try {
             ConnectionCreate c = new ConnectionCreate();
             Connection con = c.makeConnection();
@@ -567,7 +591,7 @@ class AddressBook extends Contact {
     public int retrieveByCity(String city)
     {
         int count = 0;
-        String sql = "select * from address where vity=?";
+        String sql = "select * from address_book_table where city=?";
         try {
             ConnectionCreate c = new ConnectionCreate();
             Connection con = c.makeConnection();
@@ -585,7 +609,7 @@ class AddressBook extends Contact {
 
     public void insert(Contact c)
     {
-        String sql="insert into contact (first_name,last_name,address,city,state,zip,phone,email) values (?,?,?,?,?,?,?,?);";
+        String sql="insert into address_book_table (first_name,last_name,address,city,state,zip,phone,email) values (?,?,?,?,?,?,?,?);";
         try {
             ConnectionCreate conc = new ConnectionCreate();
             Connection con = conc.makeConnection();
@@ -604,8 +628,20 @@ class AddressBook extends Contact {
         }
     }
 
-
-
+    public void insertMultiple(ArrayList<Contact> addressBook) {
+        for(Contact c:addressBook) {
+            Runnable task = () -> {
+                insert(c);
+            };
+            Thread thread = new Thread(task);
+            thread.start();
+            try {
+                thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
 
 class AddressBookDictionary extends AddressBook {

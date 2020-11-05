@@ -1,5 +1,7 @@
 package com.cg.addressbook;
 
+import java.util.Date;
+
 import static java.lang.CharSequence.compare;
 
 public class Contact {
@@ -11,6 +13,7 @@ public class Contact {
     protected String zip;
     protected String phone_number;
     protected String email;
+    protected Date start;
 
     public String getFirst() {
         return f_name;
@@ -80,6 +83,37 @@ public class Contact {
         this.email = email;
     }
 
+    public Date getDate(){
+        return start;
+    }
+
+    public void setDate(Date start){
+        this.start=start;
+    }
+
+    Contact(){
+
+    }
+
+    Contact(String f_name,
+            String l_name,
+            String address,
+            String city,
+            String state,
+            String zip,
+            String phone_number,
+            String email,Date start){
+        this.f_name=f_name;
+        this.l_name=l_name;
+        this.address=address;
+        this.city=city;
+        this.state=state;
+        this.zip=zip;
+        this.phone_number=phone_number;
+        this.email=email;
+        this.start=start;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -90,7 +124,7 @@ public class Contact {
 
     public String toString() {
         return "Name :" + getFirst() + " " + getLast() + "\nAddress :" + getAddress() + " " + getCity() + " " + getState() + " " + getZip()
-                + "\nPhone Number : " + getPhone() + "\nEmail id :  " + getEmail() + "\n";
+                + "\nPhone Number : " + getPhone() + "\nEmail id :  " + getEmail() + "\n" + start + "\n";
     }
 
 }
