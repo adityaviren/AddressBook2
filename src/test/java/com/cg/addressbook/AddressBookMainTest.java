@@ -1,14 +1,19 @@
 package com.cg.addressbook;
 
 import com.opencsv.exceptions.CsvValidationException;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class AddressBookMainTest {
 
@@ -57,7 +62,7 @@ public class AddressBookMainTest {
                 "98989898","adi@gmail.com",new Date(1000000L));
         addressBook.insert(contact);
         addressBook.readDB();
-        Assert.assertEquals(4,size+1);
+        Assert.assertEquals(17,size+1);
 
     }
 
@@ -81,6 +86,37 @@ public class AddressBookMainTest {
         arrayList.add(contact3);
         addressBook.insertMultiple(arrayList);
         addressBook.readDB();
-        Assert.assertEquals(16,size+3);
+        Assert.assertEquals(20,size+3);
+    }
+
+    @Test
+    public void givenJsonServer_shouldPerformIOOperation() throws SQLException {
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.port = 4001;
+
+        AddressBook addressBook = new AddressBook();
+        ArrayList<Contact> list;
+        list = addressBook.readDB();
+        for(Contact contact : list){
+            LinkedHashMap<String,String> details = new LinkedHashMap<>();
+            details.put("f_name",contact.getFirst());
+            details.put("l_name",contact.getLast());
+            details.put("address",contact.getAddress());
+            details.put("city",contact.getCity());
+            details.put("state",contact.getState());
+            details.put("zip",contact.getZip());
+            details.put("phone",contact.getPhone());
+            details.put("email",contact.getEmail());
+            RestAssured.given().
+                    contentType(ContentType.JSON).
+                    accept(ContentType.JSON).
+                    body(details).
+                    when().
+                    post("/contacts/create");
+
+
+        }
+
+
     }
 }
